@@ -18,7 +18,7 @@ func init() {
 		return
 	}
 
-	wz_id.DEFAULT_T = defaultT.Unix()
+	wz_id.StartTime = defaultT.Unix()
 }
 
 func main() {

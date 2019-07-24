@@ -2,22 +2,26 @@ package wz_id
 
 import (
 	"fmt"
+	"sync"
 	"time"
-	"wz_id_generator/api"
 	"wz_id_generator/conf"
 )
 
 const (
-	MAX_SEQUENCE int64 = 1 << 16
-	ID_BITS            = 53
-	TIME_BITS          = 32
-	WORK_ID_BITS       = 5
-	SEQ_BITS           = 16
+	MAX_SEQUENCE        int64 = 1 << 16
+	TIME_OFFSET_BITS          = 21
+	WORK_ID_OFFSET_BITS       = 16
 )
 
 var (
-	DEFAULT_T int64 = 0
-	sequence  int64 = 0
+	StartTime   int64 = 0
+	sequence    int64 = 0
+	epochSecond int64 = 0
+	lastSecond  int64 = 0
+	workID            = conf.C.App.WorkID
+	m                 = &sync.Mutex{}
+
+	count int64 = 0
 )
 
 type WzID struct {
@@ -25,32 +29,50 @@ type WzID struct {
 }
 
 func (wi *WzID) NewID(in interface{}, id *int64) error {
-
-	now := time.Now().Unix()
-	api.EpochSecond = now - DEFAULT_T
-
-	if api.EpochSecond < api.LastSecond {
-		fmt.Printf("clock is back: %d from previous: %d\n", api.EpochSecond, api.LastSecond)
+	m.Lock()
+	epochSecond = getEpochSecond()
+	if epochSecond < lastSecond {
+		// clock is back
+		fmt.Printf("clock is back: %d from previous: %d\n", epochSecond, lastSecond)
 	}
 
-	if api.LastSecond != api.EpochSecond {
-		api.LastSecond = api.EpochSecond
+	if lastSecond != epochSecond {
+		lastSecond = epochSecond
 		sequence = 0
+		*id = getNextID()
+
+		m.Unlock()
+		return nil
 	}
 
-	sequence++
+	CheckSequence()
+	*id = getNextID()
 
-	// TODO ?
+	m.Unlock()
+	return nil
+}
+
+func getNextID() int64 {
+	return epochSecond<<TIME_OFFSET_BITS + workID<<WORK_ID_OFFSET_BITS + sequence
+}
+
+func getEpochSecond() int64 {
+	return time.Now().Unix() - StartTime
+}
+
+func CheckSequence() {
 	if sequence > MAX_SEQUENCE {
-		for {
-			api.EpochSecond = time.Now().Unix() - DEFAULT_T
-			if api.LastSecond < api.EpochSecond {
+		tickerChan := time.NewTicker(time.Microsecond * 10).C
+
+		select {
+		case <-tickerChan:
+			epochSecond = getEpochSecond()
+			if lastSecond < epochSecond {
+				sequence = 0
 				break
 			}
 		}
+	} else {
+		sequence++
 	}
-
-	*id = api.EpochSecond<<(WORK_ID_BITS+SEQ_BITS) + int64(conf.C.App.WorkID)<<SEQ_BITS + sequence
-
-	return nil
 }
