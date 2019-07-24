@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	defaultT, err := time.Parse("2006-01-02 15:04:05", conf.C.App.EpochStr)
+	defaultT, err := time.Parse("2006-01-02 15:04:05", conf.C.App.StartTimeStr)
 	if err != nil {
 		fmt.Printf("default time parse err: %v\n", err)
 		return

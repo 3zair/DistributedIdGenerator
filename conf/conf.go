@@ -11,9 +11,9 @@ import (
 
 type Conf struct {
 	App *struct {
-		WorkID   int64  `json:"work_id"`
-		EpochStr string `json:"epoch_str"`
-		Port     int    `json:"port"`
+		WorkID       int64  `json:"work_id"`
+		StartTimeStr string `json:"start_time_str"`
+		Port         int    `json:"port"`
 	}
 }
 
@@ -41,5 +41,5 @@ func init() {
 		os.Exit(-1)
 	}
 
-	log.Printf("epochStr: %s, port: %d, workID: %d\n", C.App.EpochStr, C.App.WorkID, C.App.Port)
+	log.Printf("epochStr: %s, port: %d, workID: %d\n", C.App.StartTimeStr, C.App.WorkID, C.App.Port)
 }

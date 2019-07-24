@@ -1,7 +1,9 @@
 package wz_id
 
 import (
+	"fmt"
 	"time"
+	"wz_id_generator/api"
 	"wz_id_generator/conf"
 )
 
@@ -23,16 +25,32 @@ type WzID struct {
 }
 
 func (wi *WzID) NewID(in interface{}, id *int64) error {
-	*id = 1 << ID_BITS
 
 	now := time.Now().Unix()
-	t := now - DEFAULT_T
+	api.EpochSecond = now - DEFAULT_T
 
-	if sequence > MAX_SEQUENCE {
-		// TODO
+	if api.EpochSecond < api.LastSecond {
+		fmt.Printf("clock is back: %d from previous: %d\n", api.EpochSecond, api.LastSecond)
 	}
 
-	*id = *id + t<<(WORK_ID_BITS+SEQ_BITS) + int64(conf.C.App.WorkID)<<SEQ_BITS + sequence
+	if api.LastSecond != api.EpochSecond {
+		api.LastSecond = api.EpochSecond
+		sequence = 0
+	}
+
 	sequence++
+
+	// TODO ?
+	if sequence > MAX_SEQUENCE {
+		for {
+			api.EpochSecond = time.Now().Unix() - DEFAULT_T
+			if api.LastSecond < api.EpochSecond {
+				break
+			}
+		}
+	}
+
+	*id = api.EpochSecond<<(WORK_ID_BITS+SEQ_BITS) + int64(conf.C.App.WorkID)<<SEQ_BITS + sequence
+
 	return nil
 }
