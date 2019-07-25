@@ -1,12 +1,12 @@
 package main
 
 import (
+	"DistributedIdGenerator/conf"
+	"DistributedIdGenerator/id_generator"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
-	"wz_id_generator/conf"
-	"wz_id_generator/id_generator"
 	"wz_rpc_go"
 )
 

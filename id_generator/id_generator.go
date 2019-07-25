@@ -1,9 +1,9 @@
 package id_generator
 
 import (
+	"DistributedIdGenerator/conf"
 	"sync"
 	"time"
-	"wz_id_generator/conf"
 )
 
 const (
