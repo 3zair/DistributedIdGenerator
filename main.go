@@ -5,24 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"time"
 	"wz_id_generator/conf"
-	"wz_id_generator/wz_id"
+	"wz_id_generator/id_generator"
 	"wz_rpc_go"
 )
 
-func init() {
-	defaultT, err := time.Parse("2006-01-02 15:04:05", conf.C.App.StartTimeStr)
-	if err != nil {
-		fmt.Printf("default time parse err: %v\n", err)
-		return
-	}
-
-	wz_id.StartTime = defaultT.Unix()
-}
-
 func main() {
-	id := &wz_id.WzID{}
+	id := id_generator.NewIdGenerator()
 	addr := fmt.Sprintf("%s:%d", "127.0.0.1", conf.C.App.Port)
 
 	s := wz_rpc_go.NewServer(addr, func(conn net.Conn) wz_rpc_go.Codec {

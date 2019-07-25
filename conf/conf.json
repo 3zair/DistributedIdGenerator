@@ -1,7 +1,8 @@
 {
   "app":{
-    "work_id":1,
-    "start_time_str":"2019-01-01 00:00:01",
+    "name": "wz-id",
     "port" : 8088
-  }
+  },
+  "epoch": 0,
+  "worker_id": 0
 }

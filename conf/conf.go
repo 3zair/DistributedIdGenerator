@@ -5,31 +5,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
+	"time"
 )
 
 type Conf struct {
 	App *struct {
-		WorkID       int64  `json:"work_id"` //0-31
-		StartTimeStr string `json:"start_time_str"`
-		Port         int    `json:"port"`
+		Name string `json:"name"`
+		Port int    `json:"port"`
 	}
+	WorkId int64 `json:"work_id"` // [0, 31]
+	Epoch  int64 `json:"epoch"`   // 时间戳
 }
 
 var C *Conf
 
 func init() {
-	dir := "conf"
-	for i := 0; i < 3; i++ {
-		info, err := os.Stat(dir)
-		if err == nil && info.IsDir() {
-			break
-		}
-
-		dir = filepath.Join("..", dir)
-	}
-
-	content, err := ioutil.ReadFile(filepath.Join(dir, "conf.json"))
+	content, err := ioutil.ReadFile("conf/conf.json")
 	if err != nil {
 		fmt.Printf("get conf file contents error: %v\n", err)
 		os.Exit(-1)
@@ -40,10 +31,16 @@ func init() {
 		os.Exit(-1)
 	}
 
-	if C.App.WorkID > 31 {
-		fmt.Printf("invalid workID: %d,valid workID 0-31 \n", C.App.WorkID)
-		return
+	if C.WorkId > 31 || C.WorkId < 0 {
+		fmt.Printf("invalid workID: %d, valid workID 0-31\n", C.WorkId)
+		os.Exit(-1)
 	}
 
-	fmt.Printf("epochStr: %s, port: %d, workID: %d\n", C.App.StartTimeStr, C.App.WorkID, C.App.Port)
+	if C.Epoch < 0 || C.Epoch > time.Now().Unix() {
+		fmt.Printf("invalid epoch: %d\n", C.Epoch)
+		os.Exit(-1)
+	}
+
+	fmt.Printf("conf:\nAppName: %s\nAppPort: %d\nWorkerId: %d\nEposh: %d\n", C.App.Name, C.App.Port, C.WorkId, C.Epoch)
+	return
 }
